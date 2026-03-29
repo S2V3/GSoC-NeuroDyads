@@ -265,7 +265,7 @@ A shuffled-label control was trained with identical architecture and data — on
 
 ### Main Notebook Results
 
-![CEBRA 3D Embeddings Main](assets/CEBRA_3D_Embedding_plot_for_without_split.png)
+![CEBRA 3D Embeddings Main](assets/CEBRA%203D%20Embedding%20plot%20for%20without%20split.png)
 
 | Metric | Main Model | Shuffled Control |
 |---|---|---|
