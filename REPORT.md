@@ -176,7 +176,7 @@ After applying ICA, PSD before/after comparisons were generated for all four seg
 
 **Listener segments:**
 
-![PSD Listener](assets/PSD_comparision_listener.png)
+![PSD Listener](assets/PSD%20comparision_listener.png)
 
 The overlay comparison (left) shows the before (blue) and after (red) ICA lines nearly identical at alpha (8–13 Hz) — brain signal is preserved. Differences are concentrated in delta (1–4 Hz) where eye-blink and slow drift components were removed.
 
