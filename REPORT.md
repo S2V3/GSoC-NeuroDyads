@@ -313,7 +313,7 @@ Train embeddings show a complete blob — blue and red completely mixed even on 
 
 **Test embeddings:**
 
-![Random Split Test](assets/random_split_test.png)
+![Random Split Test](assets/random_split_test.png.png)
 
 | Metric | Main Model | Shuffled Control |
 |---|---|---|
