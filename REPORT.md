@@ -108,7 +108,7 @@ ICA decomposes the mixed EEG signal into statistically independent components. E
 
 All component-level decisions — including the artifact type, the specific time-series and spectral features observed, and the accept/reject verdict — are documented in a structured spreadsheet in the repository assets:
 
- **[Segmentation.xlsx]([https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx?raw=true](https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx))** — full decision log for all 67 rejected components across 4 segments, with columns: Segment | Component ID | Artifact Type | Time-Series Feature | Spectral Feature | Decision
+ **[Segmentation.xlsx]((https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx?raw=true))** — full decision log for all 67 rejected components across 4 segments, with columns: Segment | Component ID | Artifact Type | Time-Series Feature | Spectral Feature | Decision
 
 Below are representative examples of rejected and accepted components, with the neural behaviour observed in each case and how it affected the decision.
 
