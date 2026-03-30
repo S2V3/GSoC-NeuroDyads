@@ -188,7 +188,7 @@ Speaker Positive had the most rejections (28) — biologically expected because 
 
 The complete decision rationale for every rejected component is recorded in the spreadsheet:
 
-> 📊 **[Segmentation.xlsx](https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx?raw=true)**  
+> **[Segmentation.xlsx](https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx)**  
 > Columns: Segment | Component ID | Artifact Type | Time-Series Feature | Spectral Feature | Decision | Notes
 
 ### PSD Verification
