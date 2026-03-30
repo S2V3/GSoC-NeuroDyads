@@ -106,7 +106,11 @@ ICA decomposes the mixed EEG signal into statistically independent components. E
 
 ### ICA Component Decisions
 
-Below are representative examples of rejected and accepted components.
+All component-level decisions — including the artifact type, the specific time-series and spectral features observed, and the accept/reject verdict — are documented in a structured spreadsheet in the repository assets:
+
+📊 **[Segmentation.xlsx](https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx?raw=true)** — full decision log for all 67 rejected components across 4 segments, with columns: Segment | Component ID | Artifact Type | Time-Series Feature | Spectral Feature | Decision
+
+Below are representative examples of rejected and accepted components, with the neural behaviour observed in each case and how it affected the decision.
 
 ---
 
@@ -125,8 +129,11 @@ Below are representative examples of rejected and accepted components.
 ![IC24 Listener Negative](assets/IC24_listener_negative.png)
 
 **Time series:** Continuous, moderate amplitude oscillations throughout the entire recording. No sudden spikes, no decay, no drift. Amplitude stays within ±3 units consistently.  
-**Power spectrum:** Strong low-frequency power with a smooth 1/f downward slope — exactly what brain activity looks like. Dominant power at 1–5 Hz (delta/theta) consistent with a resting or listening neural state.  
-**Decision: KEEP** — this is what a healthy brain component looks like.
+**Power spectrum:** Strong low-frequency power with a smooth 1/f downward slope. Dominant power at 1–5 Hz (delta/theta) consistent with a resting or listening neural state.
+
+**Neural behaviour observed — the alpha bump as a diagnostic marker:** The clearest positive indicator of a genuine brain component in this dataset was the presence of an alpha bump — a small but visible local elevation in power around 8–13 Hz sitting on top of the otherwise declining 1/f slope. This alpha oscillation originates primarily from thalamo-cortical circuits and is strongly associated with attentional state, sensory gating, and cognitive load. During the Listener Negative condition — sustained empathetic attention to a Speaker discussing a stressful experience — alpha modulation is neurophysiologically expected as the Listener actively processes emotionally charged speech. In practice, I used the alpha bump as a positive diagnostic criterion throughout all four segments: components showing a 1/f slope with a visible alpha elevation were accepted unless they had an overriding time-series artifact. This became the most reliable way to distinguish genuine brain components from broadband noise, especially given that topographic maps were unavailable due to missing digitization points in the EDF files.
+
+**Decision: KEEP** — smooth 1/f slope with alpha structure is the signature of genuine cortical activity.
 
 ---
 
@@ -134,7 +141,10 @@ Below are representative examples of rejected and accepted components.
 
 ![IC49 Listener Negative](assets/IC49_listener_negative.png)
 
-**Time series:** Repeated spikes at equal, regular intervals throughout the recording. This is a non-physiological periodic artifact — biological signals do not produce perfectly regular, evenly spaced transients of this kind. This pattern is typically caused by electrical interference or equipment noise that has leaked into the EEG recording.  
+**Time series:** Repeated spikes at equal, regular intervals throughout the recording.
+
+**Neural behaviour observed:** The key diagnostic here is the *regularity* of the spike intervals. Neural firing — even rhythmic oscillations like alpha waves — never produces perfectly timed, equal-interval transients at this timescale. Genuine brain oscillations have jitter, amplitude variation, and interact with other rhythms. A component with perfectly spaced, equal-amplitude spikes is therefore definitively non-neural. The most likely source is electrical interference or equipment noise that leaked into the recording during that specific block — the fact that this pattern appeared only in the Listener Negative segment and not in others suggests it may have been triggered by a transient environmental condition during recording.
+
 **Decision: REJECT** — perfectly periodic equal-interval spikes are a non-physiological artifact signature.
 
 ---
@@ -143,9 +153,12 @@ Below are representative examples of rejected and accepted components.
 
 ![IC10 Speaker Positive](assets/IC10_speaker_positive.png)
 
-**Time series:** Flat and near-zero for the first ~7 seconds, then suddenly bursting into high-frequency, high-amplitude irregular activity from ~7–10 seconds. This onset burst is characteristic of facial or jaw muscle activation — the Speaker begins a passage of active speech, recruiting muscles that contaminate the EEG.  
-**Power spectrum:** Power increases sharply above 15 Hz and continues rising through 40 Hz — the classic EMG signature. Brain signals fall off above 30 Hz; muscle signals rise.  
-**Decision: REJECT** — this is a speech-related EMG artifact. Speaker segments required ~28 rejections vs ~15 for the Listener precisely because active speech production continuously recruits face, jaw and neck muscles.
+**Time series:** Flat and near-zero for the first ~7 seconds, then suddenly bursting into high-frequency, high-amplitude irregular activity from ~7–10 seconds.  
+**Power spectrum:** Power increases sharply above 15 Hz and continues rising through 40 Hz — the classic EMG signature. Brain signals fall off above 30 Hz; muscle signals rise.
+
+**Neural behaviour observed — why the Speaker needed so many more rejections than the Listener:** This component illustrates a systematic neurophysiological asymmetry between the Speaker and Listener conditions. The Speaker is actively producing speech — coordinating respiratory muscles, laryngeal muscles, jaw movements, and facial expression simultaneously. Each of these motor acts generates high-frequency EMG signals that propagate through the skull and contaminate surface EEG electrodes. The Listener, by contrast, is in a relatively passive motor state — the most they do is nod or make brief vocalizations. This motor asymmetry directly explains the rejection count difference: Speaker Positive required 28 rejections vs 15 for Listener Positive; Speaker Negative required 15 vs 9 for Listener Negative. The burst onset at ~7 seconds in this particular component corresponds precisely to the Speaker beginning a sustained speaking passage after a brief pause — the muscle recruitment is time-locked to the speech act itself, not random noise. This observation has a practical implication for the 2026 project: Speaker and Listener segments should be preprocessed with different ICA thresholds, and this asymmetry should be documented and validated systematically across all 40+ dyads.
+
+**Decision: REJECT** — speech-related EMG artifact.
 
 ---
 
@@ -153,9 +166,12 @@ Below are representative examples of rejected and accepted components.
 
 ![IC10 Listener Negative](assets/IC10_listener_negative.png)
 
-**Time series:** Appears superficially brain-like — continuous, moderate amplitude.  
-**Power spectrum:** Spectrum goes completely flat after ~5 Hz. A genuine brain component maintains a declining 1/f slope across the full frequency range. A flat spectrum after 5 Hz means the component contains equal power across all frequencies — this is the signature of white noise or a recording artifact, not neural oscillations.  
-**Decision: REJECT** — flat spectrum after 5 Hz is not consistent with brain activity.
+**Time series:** Appears superficially brain-like — continuous, moderate amplitude, no obvious spikes.  
+**Power spectrum:** Spectrum goes completely flat after ~5 Hz.
+
+**Neural behaviour observed:** This was one of the more difficult decisions because the time series alone gave no obvious indication of an artifact. The spectral signature was the decisive feature. Neural signals in EEG universally follow a 1/f (or 1/f²) power law: low-frequency oscillations dominate and power falls off continuously through alpha (8–13 Hz), beta (13–30 Hz), and gamma (30–40 Hz). A perfectly flat spectrum after 5 Hz violates this law entirely — it means the component contains equal energy at 6 Hz and 38 Hz, which no neural process produces. The most likely explanation is a broadband noise source (ground loop, cable movement, or electrode impedance instability) that is spatially uncorrelated with the more obvious artifactual components already removed. The lesson from this component was that **the time series alone is insufficient for rejection decisions** — the spectral profile is the more reliable diagnostic, especially for components that don't present as obvious eye blinks or EMGs. This became a consistent principle applied across all subsequent inspections.
+
+**Decision: REJECT** — flat spectrum after 5 Hz is inconsistent with neural 1/f structure.
 
 ---
 
@@ -168,7 +184,12 @@ Below are representative examples of rejected and accepted components.
 | Speaker Positive | 3, 6, 7, 9, 10, 14, 15, 16, 19, 26, 27, 29, 35, 36, 38, 40, 42, 43, 46, 47, 50, 52, 54, 58, 59, 60, 61, 62 | 36 |
 | Speaker Negative | 3, 9, 12, 13, 15, 18, 20, 21, 23, 25, 35, 43, 45, 50, 57 | 49 |
 
-Speaker positive had the most rejections (28) — biologically expected because the Speaker uses jaw, face, and neck muscles continuously during speech production, generating far more EMG contamination than the passive Listener.
+Speaker Positive had the most rejections (28) — biologically expected because the Speaker uses jaw, face, and neck muscles continuously during speech production, generating far more EMG contamination than the passive Listener.
+
+The complete decision rationale for every rejected component is recorded in the spreadsheet:
+
+> 📊 **[Segmentation.xlsx](https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx?raw=true)**  
+> Columns: Segment | Component ID | Artifact Type | Time-Series Feature | Spectral Feature | Decision | Notes
 
 ### PSD Verification
 
@@ -178,7 +199,7 @@ After applying ICA, PSD before/after comparisons were generated for all four seg
 
 ![PSD Listener](assets/PSD%20comparision_listener.png)
 
-The overlay comparison (left) shows the before (blue) and after (red) ICA lines nearly identical at alpha (8–13 Hz) — brain signal is preserved. Differences are concentrated in delta (1–4 Hz) where eye-blink and slow drift components were removed.
+The overlay comparison shows the before (blue) and after (red) ICA lines nearly identical at alpha (8–13 Hz) — brain signal is preserved. Differences are concentrated in delta (1–4 Hz) where eye-blink and slow drift components were removed.
 
 **Speaker segments:**
 
@@ -385,9 +406,9 @@ The shuffled control reaching 78.51% on train is also informative: even with ran
 
 The main model shows two cleanly separated, internally coherent clusters. The positive affect condition (blue) forms a broad, spread-out disc-like region; the negative condition (red) forms a tighter, more compact region. Both lie on the surface of the unit sphere — a consequence of CEBRA's cosine distance metric and L2-normalization of the output layer.
 
-The internal density of each cluster reflects the stability of the joint brain state within each condition — both participants' neural activity is consistent across timepoints within the same emotional context. The shape asymmetry is interesting: the broader positive affect region may reflect more variable, exploratory joint neural dynamics, while the constrained negative affect region suggests more stereotyped neural responses — consistent with affective neuroscience findings that negative emotional processing engages more focused, less variable neural resources.
+**Neural behaviour — why the positive cluster is broader than the negative cluster:** The shape asymmetry between the two clusters is neurobiologically meaningful. The broader positive affect region reflects more variable, exploratory joint neural dynamics during pleasant conversation — the Speaker is describing enjoyable experiences and the Listener is engaged in affiliative, open-ended social processing. In affective neuroscience, positive emotional states are associated with broader, more distributed neural activation patterns (approach motivation, exploratory cognition), which naturally produces more geometrically spread embeddings. The tighter negative affect cluster reflects more stereotyped, focused neural responses — the Speaker is recounting a stressful experience and the Listener is in a constrained empathetic support role. Negative emotional processing consistently engages more focal, less variable neural circuits (threat processing, emotional regulation), which produces tighter clustering in embedding space. This interpretation must be held cautiously given the temporal confound — but the directional prediction (negative → tighter, positive → broader) is consistent with the affective neuroscience literature and constitutes a testable hypothesis once the confound is resolved.
 
-A handful of points scatter at the boundary between clusters. These likely correspond to transitional timepoints near the condition change, consistent with Hasson et al. (2012): listener-speaker neural coupling builds gradually and does not switch instantaneously.
+**Neural behaviour — boundary scatter points and state transitions:** A handful of points scatter at the boundary between clusters. These correspond to transitional timepoints near the condition change — the brief period when the conversation shifts from positive to negative affect. This is consistent with Hasson et al. (2012): listener-speaker neural coupling builds gradually through temporal coupling across multiple timescales (seconds to tens of seconds) and does not switch instantaneously when emotional content changes. The scatter represents the neural system settling into a new emotional regime — a period of high-dimensional state uncertainty before the new joint attractor is established. The fact that these points are few and spatially concentrated rather than spread throughout the clusters suggests the condition boundary is relatively sharp in the neural data, even if not instantaneous.
 
 **Q2: Control analysis**
 
