@@ -25,7 +25,7 @@ The pipeline covers raw EEG preprocessing, CEBRA contrastive embedding, KNN deco
 - Located DIN1 event markers programmatically (manual reading caused crop errors)
 - Cropped into 4 segments: positive affect (marker 1 → marker 2), negative affect (marker 3 → end)
 - Resolved a 0.22-second duration mismatch between Listener and Speaker negative segments
-- Removed channel 65 (EEG VREF — vertex reference, not a brain source) → 64 channels per participant
+- Removed channel 65 (EEG VREF - vertex reference, not a brain source) → 64 channels per participant
 - Renamed all 64 channels from generic EEG 1–64 to standard 10-20 system labels
 - Applied 60 Hz notch filter (power line interference confirmed from raw PSD) + 1–40 Hz bandpass
 - Ran ICA using Picard algorithm (n_components=64, random_state=42)
@@ -39,10 +39,10 @@ The pipeline covers raw EEG preprocessing, CEBRA contrastive embedding, KNN deco
 
 | Segment | Shape (channels × timepoints) |
 |---|---|
-| Listener — Positive affect | (64, 36944) |
-| Listener — Negative affect | (64, 38487) |
-| Speaker — Positive affect | (64, 36944) |
-| Speaker — Negative affect | (64, 38487) |
+| Listener - Positive affect | (64, 36944) |
+| Listener - Negative affect | (64, 38487) |
+| Speaker - Positive affect | (64, 36944) |
+| Speaker - Negative affect | (64, 38487) |
 
 ### ICA Quality Verification
 
@@ -108,7 +108,7 @@ The most important finding of this submission is not the 99.53%, it is what happ
 
 Positive affect always occupies timepoints 1–36,944 and negative affect occupies 36,945–75,431. Condition label and recording time are perfectly correlated. CEBRA's time-delta contrastive objective makes this especially problematic, it constructs positive pairs from timepoints that are close in time, which in this setup almost always means same-label. Remove time as a cue via random stratified splitting and accuracy collapses to 50.79%. Make the temporal boundary explicit via chronological splitting and the test set becomes 100% negative affect, trivially predicted every time.
 
-This confound and its fix, interleaved recording blocks and epoch-level stratified cross-validation — are the core methodological improvements planned for the 2026 project.
+This confound and its fix, interleaved recording blocks and epoch-level stratified cross-validation - are the core methodological improvements planned for the 2026 project.
 
 ---
 
