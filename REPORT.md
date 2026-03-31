@@ -1,4 +1,4 @@
-# NeuroDyads GSoC 2026 — Task Report
+# NeuroDyads GSoC 2026: Task Report
 
 **Vaidehi Shivram Hegde**  
 B.Tech Engineering Physics · IIT (ISM) Dhanbad  
@@ -36,9 +36,9 @@ Mentors: Dr. Evie Malaia (University of Alabama) · Dr. Brendan Ames (University
 
 ## 1. Project Background
 
-NeuroDyads is an ML4SCI project studying **brain-to-brain synchrony** during naturalistic conversation. Two participants — a Listener and a Speaker — wear EEG caps simultaneously while engaging in emotionally varied dialogue. This is called **hyperscanning**: recording neural activity from two brains at the same time.
+NeuroDyads is an ML4SCI project studying **brain-to-brain synchrony** during naturalistic conversation. Two participants (a Listener and a Speaker) wear EEG caps simultaneously while engaging in emotionally varied dialogue. This is called **hyperscanning**: recording neural activity from two brains at the same time.
 
-The scientific question is whether the two participants' brains synchronize in a condition-dependent way — and whether this synchrony carries decodable information about the emotional context of the conversation. The 2025 GSoC pilot (N=8 pairs) showed that CEBRA can decode conversational roles and participant gender at 94% accuracy. The 2026 project scales to 40+ dyads.
+The scientific question is whether the two participants' brains synchronize in a condition-dependent way, and whether this synchrony carries decodable information about the emotional context of the conversation. The 2025 GSoC pilot (N=8 pairs) showed that CEBRA can decode conversational roles and participant gender at 94% accuracy. The 2026 project scales to 40+ dyads.
 
 This report documents the complete evaluation task: preprocessing two raw EDF recordings from a single dyad, building CEBRA embeddings, and critically evaluating what the results actually mean.
 
@@ -68,7 +68,7 @@ Apply ICA → Save 4 clean .npy files
 
 ### Loading and Cropping
 
-Both EDF files were loaded using MNE-Python. DIN1 event markers were located programmatically — manual reading introduced crop timing errors. Three markers were found in each file:
+Both EDF files were loaded using MNE-Python. DIN1 event markers were located programmatically, manual reading introduced crop timing errors. Three markers were found in each file:
 
 | Marker | Listener | Speaker |
 |---|---|---|
@@ -102,25 +102,15 @@ ICA decomposes the mixed EEG signal into statistically independent components. E
 | Cardiac | Regular slow oscillations | Low frequency peak |
 | Brain (keep) | Continuous, moderate amplitude, rhythmic | Smooth 1/f slope, alpha bump at 8–13 Hz |
 
-**Algorithm:** Picard (n_components=64, random_state=42). MNE's built-in ICA plotting functions crashed because the EDF files contained no digitization points — 3D electrode coordinates were absent, making topographic maps unavailable. Custom matplotlib + scipy plots were built instead, showing time series and power spectrum per component.
+**Algorithm:** Picard (n_components=64, random_state=42). MNE's built-in ICA plotting functions crashed because the EDF files contained no digitization points, 3D electrode coordinates were absent, making topographic maps unavailable. Custom matplotlib + scipy plots were built instead, showing time series and power spectrum per component.
 
 ### ICA Component Decisions
 
-All component-level decisions — including the artifact type, the specific time-series and spectral features observed, and the accept/reject verdict — are documented in a structured spreadsheet in the repository assets:
+All component-level decisions, including the artifact type, the specific time-series and spectral features observed, and the accept/reject verdict, are documented in a structured spreadsheet in the repository assets:
 
  **[Segmentation.xlsx](https://github.com/S2V3/GSoC-NeuroDyads/blob/main/assets/Segmentation.xlsx)** — full decision log for all 67 rejected components across 4 segments, with columns: Segment | Component ID | Artifact Type | Time-Series Feature | Spectral Feature | Decision
 
 Below are representative examples of rejected and accepted components, with the neural behaviour observed in each case and how it affected the decision.
-
----
-
-#### ❌ Rejected — IC04 (Listener Positive) — Eye Blink / DC Offset Artifact
-
-![IC04 Listener Positive](assets/IC04_listener_positive.png)
-
-**Time series:** Extremely large amplitude spike at onset (~30 units), immediately decaying to near-zero and staying flat for the rest of the recording. This is the signature of a DC offset or large slow drift artifact — not a brain signal.  
-**Power spectrum:** Almost all power concentrated below 5 Hz with a sharp drop. No 1/f slope, no alpha structure.  
-**Decision: REJECT** — this component captures a slow drift artifact, not neural activity.
 
 ---
 
@@ -134,6 +124,16 @@ Below are representative examples of rejected and accepted components, with the 
 **Neural behaviour observed — the alpha bump as a diagnostic marker:** The clearest positive indicator of a genuine brain component in this dataset was the presence of an alpha bump — a small but visible local elevation in power around 8–13 Hz sitting on top of the otherwise declining 1/f slope. This alpha oscillation originates primarily from thalamo-cortical circuits and is strongly associated with attentional state, sensory gating, and cognitive load. During the Listener Negative condition — sustained empathetic attention to a Speaker discussing a stressful experience — alpha modulation is neurophysiologically expected as the Listener actively processes emotionally charged speech. In practice, I used the alpha bump as a positive diagnostic criterion throughout all four segments: components showing a 1/f slope with a visible alpha elevation were accepted unless they had an overriding time-series artifact. This became the most reliable way to distinguish genuine brain components from broadband noise, especially given that topographic maps were unavailable due to missing digitization points in the EDF files.
 
 **Decision: KEEP** — smooth 1/f slope with alpha structure is the signature of genuine cortical activity.
+
+---
+
+#### ❌ Rejected — IC04 (Listener Positive) — Eye Blink / DC Offset Artifact
+
+![IC04 Listener Positive](assets/IC04_listener_positive.png)
+
+**Time series:** Extremely large amplitude spike at onset (~30 units), immediately decaying to near-zero and staying flat for the rest of the recording. This is the signature of a DC offset or large slow drift artifact not a brain signal.  
+**Power spectrum:** Almost all power concentrated below 5 Hz with a sharp drop. No 1/f slope, no alpha structure.  
+**Decision: REJECT** this component captures a slow drift artifact, not neural activity.
 
 ---
 
